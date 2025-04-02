@@ -18,4 +18,12 @@ public function esAdmin()
 {
     return $this->rol === 'admin';
 }
+public function usuario()
+{
+    return $this->belongsTo(Usuario::class);
+}
+public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'usuario_id');
+    }
 }

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos - Playroom</title>
     @vite('resources/css/app.css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             background-color: #1a1a2e;
@@ -104,6 +105,50 @@
             color: white;
             transform: scale(1.1);
         }
+        
+        /* Estilos del carrito flotante */
+        .floating-cart {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+        }
+        .cart-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0a500;
+            color: #162447;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+        }
+        .cart-btn:hover {
+            background-color: #ff6b00;
+            color: white;
+            transform: scale(1.1);
+        }
+        .cart-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff3333;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
         .section-title {
             font-size: 2rem;
             color: #f0a500;
@@ -123,57 +168,68 @@
             display: none;
         }
         .product-card {
-        width: 280px; 
-        height: 380px; 
-        background-color: #162447;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-    }
+            width: 280px; 
+            height: 380px; 
+            background-color: #162447;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .product-image {
-        width: 100%;
-        height: 160px; 
-        object-fit: cover;
-    }
+        .product-image-container {
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+        }
 
-    .product-details {
-        padding: 15px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-    }
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
 
-    .product-name {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-        color: #e0e0e0;
-        min-height: 40px; 
-        display: flex;
-        align-items: center;
-    }
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
 
-    .product-description {
-        font-size: 0.9rem;
-        color: #b0b0b0;
-        margin-bottom: 15px;
-        display: -webkit-box;
-        -webkit-line-clamp: 3; 
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        flex-grow: 1;
-    }
+        .product-details {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .product-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto; 
-    }
+        .product-name {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+            min-height: 40px; 
+            display: flex;
+            align-items: center;
+        }
+
+        .product-description {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3; 
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto; 
+        }
         .product-price {
             color: #f0a500;
             font-weight: bold;
@@ -281,6 +337,21 @@
         </div>
     </nav>
 
+    <!-- Botón flotante del carrito -->
+    @if(Session::has('usuario_id'))
+        @php
+            $cartCount = Session::get('cart', []) ? count(Session::get('cart')) : 0;
+        @endphp
+        <div class="floating-cart">
+            <a href="{{ route('cart.view') }}" class="cart-btn">
+                <i class="fas fa-shopping-cart"></i>
+                @if($cartCount > 0)
+                    <span class="cart-counter">{{ $cartCount }}</span>
+                @endif
+            </a>
+        </div>
+    @endif
+
     <div class="container">
         <div class="search-container">
             <form action="{{ route('productos') }}" method="GET">
@@ -324,7 +395,11 @@
                                     <div class="product-footer">
                                         <span class="product-price">${{ number_format($producto->precio, 2) }}</span>
                                         @if(Session::has('usuario_id'))
-                                            <button class="buy-btn">Comprar</button>
+                                            <form action="{{ route('cart.add') }}" method="POST" style="display: inline;">
+                                                @csrf
+                                                <input type="hidden" name="producto_id" value="{{ $producto->id }}">
+                                                <button type="submit" class="buy-btn">Comprar</button>
+                                            </form>
                                         @endif
                                     </div>
                                 </div>
@@ -372,7 +447,11 @@
                                         <div class="product-footer">
                                             <span class="product-price">${{ number_format($producto->precio, 2) }}</span>
                                             @if(Session::has('usuario_id'))
-                                                <button class="buy-btn">Comprar</button>
+                                                <form action="{{ route('cart.add') }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    <input type="hidden" name="producto_id" value="{{ $producto->id }}">
+                                                    <button type="submit" class="buy-btn">Comprar</button>
+                                                </form>
                                             @endif
                                         </div>
                                     </div>
